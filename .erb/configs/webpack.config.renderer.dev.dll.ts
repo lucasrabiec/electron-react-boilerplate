@@ -31,7 +31,9 @@ const configuration: webpack.Configuration = {
   module: require('./webpack.config.renderer.dev').default.module,
 
   entry: {
-    renderer: Object.keys(dependencies || {}),
+    renderer: Object.keys(dependencies || {}).map((dep) =>
+      dep === 'electron-trpc' ? 'electron-trpc/renderer' : dep
+    ),
   },
 
   output: {

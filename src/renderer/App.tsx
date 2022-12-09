@@ -22,6 +22,7 @@ const Hello = () => {
             Read our docs
           </button>
         </a>
+        <Example />
         <a
           href="https://github.com/sponsors/electron-react-boilerplate"
           target="_blank"
