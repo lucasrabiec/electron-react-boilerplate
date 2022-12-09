@@ -12,6 +12,7 @@ import path from 'path';
 import { app, BrowserWindow, shell, ipcMain } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
+import { readFile } from 'fs/promises';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
 
@@ -26,9 +27,23 @@ class AppUpdater {
 let mainWindow: BrowserWindow | null = null;
 
 ipcMain.on('ipc-example', async (event, arg) => {
-  const msgTemplate = (pingPong: string) => `IPC test: ${pingPong}`;
-  console.log(msgTemplate(arg));
-  event.reply('ipc-example', msgTemplate('pong'));
+  const EXTRA_DATA_PATH = app.isPackaged
+    ? path.join(process.resourcesPath, 'extra-data')
+    : path.join(__dirname, '../../extra-data');
+
+  const collection = JSON.parse(
+    (await readFile(path.join(EXTRA_DATA_PATH, 'collection.json'))).toString()
+  );
+
+  try {
+    const script = await import(
+      /* webpackIgnore: true */ path.join(EXTRA_DATA_PATH, collection[0].file)
+    );
+    event.reply('ipc-example', JSON.stringify(script.main()));
+  } catch (e) {
+    console.log(e);
+    event.reply('ipc-example', e);
+  }
 });
 
 if (process.env.NODE_ENV === 'production') {
